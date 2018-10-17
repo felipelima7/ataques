@@ -1,5 +1,5 @@
 ---
-title: "Agressões a jornalistas"
+title: "O que dizem as agressões a jornalistas no período eleitoral?"
 author: "por Felipe Giacomelli"
 output: html_document
 ---
@@ -34,143 +34,30 @@ agr_jor <- full_join(agr_fis, agr_virt)
 
 ```
 
-Cerca de 150 jornalistas envolvidos na cobertura do período eleitoral sofrerão agressões antes do primeiro turno da votação, segundo a Abraji (Associação Brasileira de Jornalismo Investigativo). Entre janeiro e 30 de setembro deste ano, a associação contabilizou os casos, tanto físicos quanto virtuais, [disponibilizando o levantamento online.](https://docs.google.com/spreadsheets/d/1fP6owOQTOT4bdgCrCbDz9piYkAk6QEPtOofvmJ2EYMs/edit#gid=1508221017)
+Cerca de 150 jornalistas envolvidos na cobertura do período eleitoral sofreram agressões antes do primeiro turno de votação, é o que aponta levantamento feito pela Abraji (Associação Brasileira de Jornalismo Investigativo). Entre janeiro e o começo de outubro deste ano, a associação contabilizou os casos, levando em conta tanto os de violência física quanto os que aconteceram no ambiente virtual.
 
-De acordo com os dados da Abraji, houve um aumento no número de casos registrados conforme o primeiro turno foi se aproximando, mas dois episódios no primeiro semestre tiveram o maior número de agressões.
+[Os dados foram disponibilizados online](https://docs.google.com/spreadsheets/d/1fP6owOQTOT4bdgCrCbDz9piYkAk6QEPtOofvmJ2EYMs/edit#gid=1508221017) e, portanto, não incluem atos que aconteceram após a definição do segundo turno do pleito.
 
-```{r linha, include=T, warning=F, message=F, echo=FALSE}
-library(lubridate)
+Mas o que significa um caso de agressão a jornalistas? Segundo a Abraji, entra desde tiros disparados na direção de profissionais da imprensa a ofensas pela internet. 
 
-agr_jor$quando <- dmy(agr_jor$Data)
+Com base nos dados divulgados, o método mais comum foi o de exposição indevida, quando o agressor compartilha o perfil do jornalista em uma rede social e incentiva que seus seguidores o ataquem. Ao todo, foram 56 casos assim.
 
-quando <- agr_jor %>%
-  group_by(quando) %>%
-  summarize(total=n()) %>%
-  arrange(desc(total))
+Um profissional pode sofrer violência de mais de uma forma em um mesmo episódio. Por exemplo, pode ser hostilizado verbalmente e agredido fisicamente por uma mesma pessoa. Assim, ao dividir as ocorrências por método, o total supera os mais de 130 jornalistas vítimas de violência no compilado pela Abraji.
 
-start_date <- mdy("01-01-18")
-end_date <- mdy("10-03-18")
-n_days <- interval(start_date,end_date)/days(1)
-date <- start_date + days(0:n_days)
-date <- format(start_date + days(0:n_days), format="%m-%d-%y")
+```{r metodo, include=T, warning=F, message=F, echo=FALSE, fig.width=9, fig.height=7}
 
-df <- data.frame(date)
-colnames(df)[1] <- "quando"
-df$quando <- mdy(df$quando)
-
-quando_all <- full_join(quando, df, by = "quando")
-quando_all[is.na(quando_all)] <- 0
-
-ggplot(quando_all, aes(x=quando, y=total)) +
-  geom_line() +
-  theme_minimal() +
-  labs(x="", y="número de ocorrências", 
-       title="Agressões no período pré-eleitoral a jornalistas",
-       caption="Fonte: Abraji")+
-  theme(panel.border = element_blank(), 
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()) +
-  annotate("text", x = as.Date("2018-04-14"), y = 29, label = "tiros contra ônibus da Caravana Lula", size = 3) +
-  annotate("text", x = as.Date("2018-05-31"), y = 26, label = "parceria Facebook, agências de checagem", size = 3)
-```
-
-O primeiro aconteceu em 27 de março, quando dois ônibus com jornalistas que acompanhavam uma caravana organizada pelo ex-presidente Luiz Inácio Lula da Silva (PT) foram alvo de tiros. Ninguém saiu ferido. Pela metodologia aplicada pela Abraji, cada profissional que estava nos veículos alvejados representava uma ocorrência distinta. Assim, foram 28 casos registrados no episódio.
-
-O segundo episódio teve início em 10 de maio quando o Facebook fechou uma parceria com diversas agências de checagem de informação para tentar combater as fake news no período eleitoral. Na ocasião, diversos profissionais dessas sofreram agressões.
-
-O caso do pedido de prisão do ex-presidente Lula e a entrevista do candidato à presidência Jair Bolsonado (PSL) à Globonews também tiveram número elevado de ocorrências.
-
-```{r casos, include=T, warning=F, message=F, echo=FALSE}
+library(tidyr)
+library(stringr)
+library(forcats)
 
 colnames(agr_jor)[5] <- "veiculo"
 colnames(agr_jor)[6] <- "metodo"
 colnames(agr_jor)[7] <- "motivo"
 
-motivo <- agr_jor %>%
-  group_by(motivo) %>%
-  summarize(total=n()) %>%
-  arrange(desc(total))
-
-library(DT)
-
-datatable(motivo, options = list(
-  dom = 'Bfrtip', columnDefs = list(list(className = 'dt-center')),
-    pageLength = 10))
-```
-
-Além de a iniciativa da rede social para tentar diminuir o número de informações falsas circulando online ter sido um dos episódios com mais casos de agressão, os profissionais da Agência Pública e da Lupa, ambas de checagem, lideraram o ranking de ocorrências por empesa.
-
-Veículos tradicionais, como "Globonews", "O Globo", "Folha de S.Paulo" e "Veja" também tiveram vários de seus profissionais hostilizados. 
-
-```{r agredidos, include=T, warning=F, message=F, echo=FALSE, fig.width=8, fig.height=12}
-library(forcats)
-library(tidyr)
-
-veiculo <- agr_jor %>%
-  group_by(veiculo) %>%
-  summarize(total=n()) %>%
-  arrange(desc(total))
-
-veiculo <- veiculo %>% drop_na()
-
-ggplot(veiculo,
-       aes(x=total, y=fct_reorder(veiculo, total, desc=TRUE))) +
-  geom_segment(
-    aes(x = 0,
-        y=fct_reorder(veiculo, total, desc=TRUE),
-        xend = total,
-        yend = fct_reorder(veiculo, total, desc=TRUE)),
-    color = "gray50") +
-  geom_point() +
-  labs(x="Número de agressões", y="Veículo no qual trabalham", 
-       title = "Jornalistas agredidos, por veículo",
-       subtitle = "Houve três casos envolvendo profissionais sem empresa definida",
-       caption = "Fonte: ABRAJI") +
-  theme_minimal()
-```
-
-Na divisão por Estados, as agressões à imprensa aconteceram principalmente no Paraná e no Rio de Janeiro. O primeiro está ligado à metodologia de considerar cada jornalista nos ônibus da caravana como uma ocorrência diferente.
-
-Vendo o mapa, com exceção de um caso na Paraíba - no qual o jornalista Oscar Neto, da BandNews FM, foi agredido fisicamente e teve seu celular e seu gravador atirados no chão, não houve registros na região Norte e Nordeste do país. Os dados do levantamento, no entanto, não podem explicar o motivo.
-
-```{r mapa, include=T, warning=F, message=F, echo=FALSE}
-brmap <- get_brmap(geo = "State",
-          geo.filter = NULL,
-          class = c("sf", "SpatialPolygonsDataFrame", "data.frame"))
-
-colnames(br_estados)[1] <- "nome"
-
-br_dados <- full_join(br_estados, brmap, by = "nome")
-
-agressoes <- agr_jor %>%
-  group_by(UF) %>%
-  summarize(total=n())
-
-br_merge <- full_join(agressoes, br_dados, by = "UF")
-
-ggplot(br_merge) +
-  geom_sf(aes(fill=total)) +
-  scale_fill_distiller(direction=1, name="Número de ataques", na.value="gray") +
-  labs(title="Ataques a jornalistas no período pré-eleitoral",
-       subtitle = "Por Estado",
-       caption="Fonte: ABRAJI") +
-  theme_void() +
-  theme(panel.grid.major = element_line(colour = 'transparent'))
-```
-
-Entre os casos registrados pela Abraji há desde os tiros contra os ônibus da caravana Lula a ofensas pela internet. O método mais comum, no entanto, é de exposição indevida, quando o agressor compartilha o perfil do jornalista em uma rede social e incentiva que seus seguidores o hositilizem. Ao todo, foram 56 casos assim.
-
-Um profissional pode sofrer agressão de mais de uma forma diferente em um episódio, por exemplo, ser hostilizado verbalmente e agredido. Assim, ao dividir as ocorrências por forma de agressão, o número total supera os mais de 130 jornalistas agredidos segundo a Abraji.
-
-```{r metodo, include=T, warning=F, message=F, echo=FALSE, fig.width=9, fig.height=7}
 Metodo <- agr_jor %>%
   group_by(metodo) %>%
   summarize(total=n()) %>%
   arrange(desc(total))
-
-library(tidyr)
-library(stringr)
-library(forcats)
 
 Metodo$metodo <- str_replace_all(string = Metodo$metodo, pattern = '"', replacement = "")
 
@@ -247,3 +134,123 @@ ggplot(Metodo_tidy,
         axis.line = element_blank(),
         axis.text.x = element_blank())
 ```
+
+
+Apesar de o levantamento traçar um panorama desde o começo do ano, conforme o primeiro turno da eleição foi se aproximando, os casos de violência se tornaram mais comuns. No entanto, foram dois episódios no primeiro semestre que tiveram o maior número de jornalistas agredidos.
+
+O primeiro aconteceu em 27 de março, quando dois ônibus com profissionais da imprensa, que acompanhavam uma caravana organizada pelo ex-presidente Luiz Inácio Lula da Silva (PT), foram acertados por tiros. Ninguém saiu ferido. Pela metodologia aplicada pela Abraji, cada repórter que estava nos veículos representa uma ocorrência distinta. Assim, 28 foram registradas no episódio.
+
+O segundo  teve início em 10 de maio quando o Facebook fechou uma parceria com  agências de checagem de informação para tentar combater as fake news no período eleitoral.
+
+```{r linha, include=T, warning=F, message=F, echo=FALSE}
+library(lubridate)
+
+agr_jor$quando <- dmy(agr_jor$Data)
+
+quando <- agr_jor %>%
+  group_by(quando) %>%
+  summarize(total=n()) %>%
+  arrange(desc(total))
+
+start_date <- mdy("01-01-18")
+end_date <- mdy("10-03-18")
+n_days <- interval(start_date,end_date)/days(1)
+date <- start_date + days(0:n_days)
+date <- format(start_date + days(0:n_days), format="%m-%d-%y")
+
+df <- data.frame(date)
+colnames(df)[1] <- "quando"
+df$quando <- mdy(df$quando)
+
+quando_all <- full_join(quando, df, by = "quando")
+quando_all[is.na(quando_all)] <- 0
+
+ggplot(quando_all, aes(x=quando, y=total)) +
+  geom_line() +
+  theme_minimal() +
+  labs(x="", y="número de ocorrências", 
+       title="Agressões no período pré-eleitoral a jornalistas",
+       caption="Fonte: Abraji")+
+  theme(panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()) +
+  annotate("text", x = as.Date("2018-04-14"), y = 29, label = "tiros contra ônibus da Caravana Lula", size = 3) +
+  annotate("text", x = as.Date("2018-05-31"), y = 26, label = "parceria Facebook, agências de checagem", size = 3)
+```
+
+O caso do pedido de prisão do ex-presidente Lula e a entrevista do candidato à presidência Jair Bolsonaro (PSL) à Globonews, em agosto, também tiveram número elevado de ocorrências.
+
+```{r casos, include=T, warning=F, message=F, echo=FALSE}
+
+motivo <- agr_jor %>%
+  group_by(motivo) %>%
+  summarize(total=n()) %>%
+  arrange(desc(total))
+
+library(DT)
+
+datatable(motivo, options = list(
+  dom = 'Bfrtip', columnDefs = list(list(className = 'dt-center')),
+    pageLength = 10))
+```
+
+Falando em fake news, além de a iniciativa da rede social para tentar diminuir o número de informações falsas circulando em suas páginas ter sido um dos episódios com mais agressões registradas, os profissionais da Agência Pública e da Lupa, ambas de checagem, lideraram o ranking de ocorrências por empesa.
+
+Veículos tradicionais, como Globonews, "O Globo", "Folha de S.Paulo" e "Veja" também tiveram seus profissionais entre os mais hostilizados.
+
+```{r agredidos, include=T, warning=F, message=F, echo=FALSE, fig.width=8, fig.height=12}
+library(forcats)
+library(tidyr)
+
+veiculo <- agr_jor %>%
+  group_by(veiculo) %>%
+  summarize(total=n()) %>%
+  arrange(desc(total))
+
+veiculo <- veiculo %>% drop_na()
+
+ggplot(veiculo,
+       aes(x=total, y=fct_reorder(veiculo, total, desc=TRUE))) +
+  geom_segment(
+    aes(x = 0,
+        y=fct_reorder(veiculo, total, desc=TRUE),
+        xend = total,
+        yend = fct_reorder(veiculo, total, desc=TRUE)),
+    color = "gray50") +
+  geom_point() +
+  labs(x="Número de agressões", y="Veículo no qual trabalham", 
+       title = "Jornalistas agredidos, por veículo",
+       subtitle = "Houve três casos envolvendo profissionais sem empresa definida",
+       caption = "Fonte: ABRAJI") +
+  theme_minimal()
+```
+
+Fazendo uma divisão por Estado, as agressões à imprensa aconteceram principalmente no Paraná e no Rio de Janeiro. O primeiro está ligado à metodologia de considerar cada jornalista nos ônibus da caravana como uma ocorrência diferente.
+
+Vendo o mapa, com exceção de um caso na Paraíba - onde o jornalista Oscar Neto, da BandNews FM, foi agredido fisicamente e teve seu celular e seu gravador atirados no chão -, não houve registros na região Norte e Nordeste do país. O levantamento, contudo, não explicm o motivo (por exemplo, se realmente não houve agressões ou se há dificuldade para medir o que acontece nessas localizações).
+
+```{r mapa, include=T, warning=F, message=F, echo=FALSE}
+brmap <- get_brmap(geo = "State",
+          geo.filter = NULL,
+          class = c("sf", "SpatialPolygonsDataFrame", "data.frame"))
+
+colnames(br_estados)[1] <- "nome"
+
+br_dados <- full_join(br_estados, brmap, by = "nome")
+
+agressoes <- agr_jor %>%
+  group_by(UF) %>%
+  summarize(total=n())
+
+br_merge <- full_join(agressoes, br_dados, by = "UF")
+
+ggplot(br_merge) +
+  geom_sf(aes(fill=total)) +
+  scale_fill_distiller(direction=1, name="Número de ataques", na.value="gray") +
+  labs(title="Ataques a jornalistas no período pré-eleitoral",
+       subtitle = "Por Estado",
+       caption="Fonte: ABRAJI") +
+  theme_void() +
+  theme(panel.grid.major = element_line(colour = 'transparent'))
+```
+
